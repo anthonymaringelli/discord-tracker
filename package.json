@@ -1,0 +1,24 @@
+{
+  "name": "discord-tracker",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/anthonymaringelli/discord-tracker#readme",
+  "bugs": {
+    "url": "https://github.com/anthonymaringelli/discord-tracker/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anthonymaringelli/discord-tracker.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "discord.js": "^14.26.3",
+    "dotenv": "^17.4.2"
+  }
+}
