@@ -15,12 +15,10 @@
   "type": "commonjs",
   "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "deploy": "node deploy-commands.js",
-    "start": "npm run deploy && node main.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "discord.js": "^14.26.3",
-    "dotenv": "^17.4.2"
+    "google-auth-library": "^10.6.2",
+    "google-spreadsheet": "^5.2.0"
   }
 }
