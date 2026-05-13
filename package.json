@@ -15,7 +15,9 @@
   "type": "commonjs",
   "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deploy": "node deploy-commands.js",
+    "start": "npm run deploy && node main.js"
   },
   "dependencies": {
     "discord.js": "^14.26.3",
