@@ -18,33 +18,48 @@ const client = new Client({ intents: [
 ],  });
 
 
-// starts the cron job
-// createSchedule(client);
 
 client.commands = new Collection();
 // use previously computed _dirname for the commands folder
 const foldersPath = path.join(_dirname, 'commands');
-const commandFolders = fs.readdirSync(foldersPath);
 
-for (const folder of commandFolders) {
-	// skip non-command folders (events contains event handlers)
-	// if (folder === 'events') continue;
-	const commandsPath = path.join(foldersPath, folder);
-	const commandFiles = fs.readdirSync(commandsPath).filter((file) => file.endsWith('.js'));
-	for (const file of commandFiles) {
-		const filePath = path.join(commandsPath, file);
-		// import using file:// URL and accept default or named exports
-		const commandModule = await import(`file://${filePath}`);
-		const command = commandModule.default ?? commandModule.command ?? commandModule;
-
-		// Set a new item in the Collection with the key as the command name and the value as the exported module
-		if (command && 'data' in command && 'execute' in command) {
-			client.commands.set(command.data.name, command);
-		} else {
-			console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
+if (!fs.existsSync(foldersPath)) {
+	console.warn(`Commands folder not found at ${foldersPath} — no commands will be loaded.`);
+} else {
+	const entries = fs.readdirSync(foldersPath, { withFileTypes: true });
+	for (const entry of entries) {
+		if (entry.isDirectory()) {
+			const commandFiles = fs.readdirSync(path.join(foldersPath, entry.name)).filter((f) => f.endsWith('.js'));
+			for (const file of commandFiles) {
+				const filePath = path.join(foldersPath, entry.name, file);
+				try {
+					const commandModule = await import(`file://${filePath}`);
+					const command = commandModule.default ?? commandModule.command ?? commandModule;
+					if (command && 'data' in command && 'execute' in command) {
+						client.commands.set(command.data.name, command);
+					} else {
+						console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
+					}
+				} catch (err) {
+					console.error(`Failed to load command ${filePath}:`, err);
+				}
+			}
+		} else if (entry.isFile() && entry.name.endsWith('.js')) {
+			const filePath = path.join(foldersPath, entry.name);
+			try {
+				const commandModule = await import(`file://${filePath}`);
+				const command = commandModule.default ?? commandModule.command ?? commandModule;
+				if (command && 'data' in command && 'execute' in command) {
+					client.commands.set(command.data.name, command);
+				} else {
+					console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
+				}
+			} catch (err) {
+				console.error(`Failed to load command ${filePath}:`, err);
+			}
 		}
 	}
-};
+}
 
 
 // Load event handlers from commands/events
@@ -82,5 +97,5 @@ if (fs.existsSync(eventsPath)) {
 
 
 // Log in to Discord with your client's token
-client.login(process.env.bot_token);
+client.login(process.env.bot_token?.trim());
 
