@@ -1,5 +1,3 @@
-// require('dotenv').config();
-
 // Importing necessary modules and initializing dotenv
 import dotenv from "dotenv";
 import path from "path";
@@ -13,9 +11,7 @@ import fs from "fs";
 import { Client, Collection, GatewayIntentBits } from "discord.js";
 // import { createSchedule } from "./imports/scheduler/createSchedule.js";
 
-
-
-
+// sets intents
 const client = new Client({ intents: [    
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
@@ -32,28 +28,31 @@ client.commands = new Collection();
 const foldersPath = path.join(_dirname, 'commands');
 const commandFiles = fs.readdirSync(foldersPath);
 
-for (const file of commandFiles) {
 
+// deploying commands from the commands folder
+for (const file of commandFiles) {
     const commandsPath = path.join(foldersPath, file);
-    // const commandFiles = fs.readdirSync(commandsPath).filter((file) => file.endsWith('.js'));
-    // for (const file of commandFiles) {
-    // const filePath = path.join(commandsPath, file);
-        // import using file:// URL and accept default or named exports
+    
+    // skips folders
+    if (fs.statSync(commandsPath).isDirectory()) continue; 
+
     const commandModule = await import(`file://${commandsPath}`);
     const command = commandModule.default ?? commandModule.command ?? commandModule;
 
-        // Set a new item in the Collection with the key as the command name and the value as the exported module
     if (command && 'data' in command && 'execute' in command) {
         client.commands.set(command.data.name, command);
+        console.log(`Loaded command: ${command.data.name}`);
     } else {
-        console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
-        // }
+        console.log(`[WARNING] The command at ${commandsPath} is missing a required "data" or "execute" property.`);
     }
-};
+}
+
+
+
 
 
 // Load event handlers from commands/events
-const eventsPath = path.join(_dirname, 'commands', 'events');
+const eventsPath = path.join(_dirname, 'events');
 if (fs.existsSync(eventsPath)) {
     const eventFiles = fs.readdirSync(eventsPath).filter((file) => file.endsWith('.js'));
     for (const file of eventFiles) {
@@ -87,6 +86,7 @@ if (fs.existsSync(eventsPath)) {
 
 
 // Log in to Discord with your client's token
+console.log("Starting Bot");
 client.login(process.env.bot_token);
 
 
