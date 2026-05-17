@@ -8,7 +8,7 @@ const _dirname = path.dirname(new URL(import.meta.url).pathname).replace(/^\/([A
 dotenv.config({ path: path.join(_dirname, '.env') });
 
 import fs from "fs";
-import { Client, Collection, GatewayIntentBits } from "discord.js";
+import { Client, Events, Collection, GatewayIntentBits } from "discord.js";
 // import { createSchedule } from "./imports/scheduler/createSchedule.js";
 
 // sets intents
@@ -30,23 +30,24 @@ const commandFiles = fs.readdirSync(foldersPath);
 
 
 // deploying commands from the commands folder
-for (const file of commandFiles) {
-    const commandsPath = path.join(foldersPath, file);
+async function loadCommands() {
+    for (const file of commandFiles) {
+        const commandsPath = path.join(foldersPath, file);
     
     // skips folders
-    if (fs.statSync(commandsPath).isDirectory()) continue; 
+        if (fs.statSync(commandsPath).isDirectory()) continue; 
 
-    const commandModule = await import(`file://${commandsPath}`);
-    const command = commandModule.default ?? commandModule.command ?? commandModule;
+        const commandModule = await import(`file://${commandsPath}`);
+        const command = commandModule.default ?? commandModule.command ?? commandModule;
 
-    if (command && 'data' in command && 'execute' in command) {
-        client.commands.set(command.data.name, command);
-        console.log(`Loaded command: ${command.data.name}`);
-    } else {
-        console.log(`[WARNING] The command at ${commandsPath} is missing a required "data" or "execute" property.`);
+        if (command && 'data' in command && 'execute' in command) {
+            client.commands.set(command.data.name, command);
+            console.log(`Loaded command: ${command.data.name}`);
+        } else {
+            console.log(`[WARNING] The command at ${commandsPath} is missing a required "data" or "execute" property.`);
+        }
     }
 }
-
 
 
 
@@ -85,8 +86,14 @@ if (fs.existsSync(eventsPath)) {
 
 
 
-// Log in to Discord with your client's token
-console.log("Starting Bot");
+// Client ready event
+client.once(Events.ClientReady, () => {
+  console.log(`Ready! Logged in as ${client.user.tag}`);
+  // Load commands after the client is ready
+  loadCommands().then(() => console.log("Commands loaded successfully."));
+});
+
+// Log in to Discord
 client.login(process.env.bot_token);
 
 
